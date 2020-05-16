@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO Chat by peppo.asap</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; display: flex; flex-direction: column; height: 100vh; justify-content: flex-end;}
+      form { background: rgb(207, 207, 207); padding: 4px; width: 100%; display: flex; align-self: flex-end;}
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+  </head>
+  <body>
+    <ul id="messages"></ul>
+    <form action="">
+      <input id="m" type="text" autocomplete="off" placeholder="Insert your username" /><button>Send</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+        $(function(){
+            var socket = io();
+            var username = "";
+
+            $("form").submit(function(e){
+                e.preventDefault();
+                if(username === ""){
+                    username = $("#m").val();
+                    socket.emit("user connected", username);
+                    $('#m').attr('placeholder','Message goes here');
+                }else{
+                    socket.emit("chat message", username, $("#m").val());
+                }
+                $("#m").val("");
+                return false;                
+            });
+
+            window.onbeforeunload = function(){
+                socket.emit("user disconnected", username);
+            }
+
+            socket.on("user connected", function(username){
+                $("#messages").append($("<li style='color: green;'>").text(username + " connected."));
+            });
+
+            socket.on("user disconnected", function(username){
+                $("#messages").append($("<li style='color: red;'>").text(username + " disconnected."));
+            });
+
+            socket.on("chat message", function(username, msg){
+                $("#messages").append($("<li>").text(username + ": " + msg));
+            });
+
+        });     
+    </script>
+
+  </body>
+</html>
